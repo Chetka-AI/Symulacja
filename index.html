@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <meta name="theme-color" content="#0c1018" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <title>NeuroLife — koewolucja dwóch gatunków</title>
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+  <div id="app">
+
+    <header class="topbar">
+      <div class="brand">
+        <span class="brand-dot"></span>
+        <span class="brand-name">NeuroLife</span>
+        <span class="brand-sub">koewolucja</span>
+      </div>
+      <nav class="tabs" role="tablist">
+        <button class="tab is-active" data-view="setup"    role="tab">Ustawienia</button>
+        <button class="tab"           data-view="sim"      role="tab">Symulacja</button>
+        <button class="tab"           data-view="analysis" role="tab">Analiza</button>
+      </nav>
+    </header>
+
+    <!-- ===== USTAWIENIA ===== -->
+    <section class="view view-setup is-active" data-view="setup">
+      <div class="scroll">
+        <p class="intro">
+          Dwie populacje ewoluują jednocześnie w tym samym świecie.
+          <strong class="c-prey">Ofiary</strong> żywią się roślinami i uczą ucieczki.
+          <strong class="c-pred">Drapieżniki</strong> polują wyłącznie na żywe ofiary i uczą się łowić.
+          Klasyczny wyścig zbrojeń Lotka–Volterra.
+        </p>
+
+        <details class="card" open>
+          <summary>🧠 Sieć neuronowa</summary>
+          <div class="card-body">
+            <label class="field">
+              <span class="field-label">Liczba warstw ukrytych</span>
+              <span class="field-row">
+                <input type="range" id="p-hiddenLayers" min="0" max="3" step="1" value="1" />
+                <output id="o-hiddenLayers">1</output>
+              </span>
+            </label>
+            <label class="field">
+              <span class="field-label">Neurony na warstwę</span>
+              <span class="field-row">
+                <input type="range" id="p-hiddenSize" min="2" max="16" step="1" value="8" />
+                <output id="o-hiddenSize">8</output>
+              </span>
+            </label>
+            <label class="field">
+              <span class="field-label">Promienie wzroku</span>
+              <span class="field-row">
+                <input type="range" id="p-visionRays" min="1" max="9" step="1" value="5" />
+                <output id="o-visionRays">5</output>
+              </span>
+            </label>
+            <label class="field">
+              <span class="field-label">Rozmiar pamięci (rekurencja)</span>
+              <span class="field-row">
+                <input type="range" id="p-memorySize" min="0" max="6" step="1" value="3" />
+                <output id="o-memorySize">3</output>
+              </span>
+            </label>
+            <label class="field">
+              <span class="field-label">Funkcja aktywacji</span>
+              <select id="p-activation">
+                <option value="tanh" selected>tanh (gładka, −1..1)</option>
+                <option value="sigmoid">sigmoid (0..1)</option>
+                <option value="relu">ReLU (szybka)</option>
+              </select>
+            </label>
+            <p class="hint">
+              Wejścia (identyczne dla obu): bliskość pożywienia · bliskość celu · energia celu (na każdy promień)
+              + własna energia + pamięć.<br>
+              <em class="c-prey">Ofiara</em>: ch0 = rośliny, ch1–2 = drapieżniki (zagrożenie).<br>
+              <em class="c-pred">Drapieżnik</em>: ch0 = 0 (nie widzi roślin), ch1–2 = ofiary (cel).<br>
+              Wyjścia: skręt · prędkość · pamięć — atak drapieżnika jest hardcoded.
+            </p>
+          </div>
+        </details>
+
+        <details class="card" open>
+          <summary>🧬 Populacje i ewolucja</summary>
+          <div class="card-body">
+            <label class="field">
+              <span class="field-label"><span class="c-prey">●</span> Ofiary — liczba osobników</span>
+              <span class="field-row">
+                <input type="range" id="p-preyCount" min="10" max="150" step="5" value="60" />
+                <output id="o-preyCount">60</output>
+              </span>
+            </label>
+            <label class="field">
+              <span class="field-label"><span class="c-pred">●</span> Drapieżniki — liczba osobników</span>
+              <span class="field-row">
+                <input type="range" id="p-predatorCount" min="1" max="30" step="1" value="5" />
+                <output id="o-predatorCount">5</output>
+              </span>
+            </label>
+            <label class="field">
+              <span class="field-label">Liczba pokoleń</span>
+              <span class="field-row">
+                <input type="range" id="p-generations" min="5" max="300" step="5" value="50" />
+                <output id="o-generations">50</output>
+              </span>
+            </label>
+            <label class="field">
+              <span class="field-label">Kroki na pokolenie</span>
+              <span class="field-row">
+                <input type="range" id="p-steps" min="200" max="2000" step="100" value="800" />
+                <output id="o-steps">800</output>
+              </span>
+            </label>
+            <label class="field">
+              <span class="field-label">Współczynnik mutacji</span>
+              <span class="field-row">
+                <input type="range" id="p-mutRate" min="0" max="1" step="0.01" value="0.15" />
+                <output id="o-mutRate">0.15</output>
+              </span>
+            </label>
+            <label class="field">
+              <span class="field-label">Siła mutacji</span>
+              <span class="field-row">
+                <input type="range" id="p-mutStrength" min="0.01" max="1" step="0.01" value="0.30" />
+                <output id="o-mutStrength">0.30</output>
+              </span>
+            </label>
+            <label class="field">
+              <span class="field-label">Elita (% niezmutowanych)</span>
+              <span class="field-row">
+                <input type="range" id="p-elitism" min="0" max="0.5" step="0.01" value="0.10" />
+                <output id="o-elitism">0.10</output>
+              </span>
+            </label>
+          </div>
+        </details>
+
+        <details class="card">
+          <summary>🌍 Świat</summary>
+          <div class="card-body">
+            <label class="field">
+              <span class="field-label">Rozmiar mapy (px)</span>
+              <span class="field-row">
+                <input type="range" id="p-worldSize" min="200" max="600" step="20" value="380" />
+                <output id="o-worldSize">380</output>
+              </span>
+            </label>
+            <label class="field">
+              <span class="field-label">Ilość roślinnego pokarmu</span>
+              <span class="field-row">
+                <input type="range" id="p-foodCount" min="10" max="240" step="5" value="110" />
+                <output id="o-foodCount">110</output>
+              </span>
+            </label>
+            <label class="field">
+              <span class="field-label">Skupiska pokarmu</span>
+              <span class="field-row">
+                <input type="range" id="p-foodClusters" min="1" max="20" step="1" value="6" />
+                <output id="o-foodClusters">6</output>
+              </span>
+            </label>
+            <label class="field">
+              <span class="field-label">Regeneracja pokarmu (kroki)</span>
+              <span class="field-row">
+                <input type="range" id="p-foodRegen" min="20" max="400" step="10" value="80" />
+                <output id="o-foodRegen">80</output>
+              </span>
+            </label>
+            <label class="field">
+              <span class="field-label">Ziarno losowości (0 = losowe)</span>
+              <span class="field-row">
+                <input type="number" id="p-seed" value="0" min="0" step="1" />
+              </span>
+            </label>
+          </div>
+        </details>
+
+        <button id="btn-start" class="btn btn-primary btn-big">▶ Uruchom trening</button>
+      </div>
+    </section>
+
+    <!-- ===== SYMULACJA ===== -->
+    <section class="view view-sim" data-view="sim">
+
+      <div class="sim-stats" id="sim-stats">
+        <div class="stat"><span class="stat-val" id="s-gen">0</span><span class="stat-key">pokolenie</span></div>
+        <div class="stat stat-prey"><span class="stat-val" id="s-prey">0</span><span class="stat-key">ofiary</span></div>
+        <div class="stat stat-pred"><span class="stat-val" id="s-pred">0</span><span class="stat-key">drapieżniki</span></div>
+        <div class="stat"><span class="stat-val" id="s-step">0</span><span class="stat-key">krok</span></div>
+      </div>
+
+      <div class="sim-legend">
+        <span><span class="lg-dot prey"></span>ofiara</span>
+        <span><span class="lg-dot pred"></span>drapieżnik</span>
+        <span class="lg-hint">jasność = energia · błysk = atak / trafienie</span>
+      </div>
+
+      <div class="canvas-wrap">
+        <canvas id="world"></canvas>
+        <div id="sim-overlay" class="sim-overlay hidden">
+          <p>Skonfiguruj parametry w zakładce <b>Ustawienia</b> i uruchom trening.</p>
+        </div>
+      </div>
+
+      <div class="sim-controls">
+        <label class="field field-inline">
+          <span class="field-label">Tempo</span>
+          <span class="field-row">
+            <input type="range" id="p-speed" min="1" max="60" step="1" value="6" />
+            <output id="o-speed">6×</output>
+          </span>
+        </label>
+        <label class="check">
+          <input type="checkbox" id="p-turbo" />
+          <span>Turbo (bez animacji — najszybszy trening)</span>
+        </label>
+        <div class="btn-row">
+          <button id="btn-pause" class="btn">⏸ Pauza</button>
+          <button id="btn-stop"  class="btn btn-danger">⏹ Stop</button>
+        </div>
+        <progress id="train-progress" value="0" max="1"></progress>
+      </div>
+    </section>
+
+    <!-- ===== ANALIZA ===== -->
+    <section class="view view-analysis" data-view="analysis">
+      <div class="scroll">
+        <div id="analysis-empty" class="empty">
+          <p>Brak danych. Ukończ trening, aby zobaczyć dynamikę koewolucji.</p>
+        </div>
+
+        <div id="analysis-content" class="hidden">
+          <div class="summary-grid" id="summary-grid"></div>
+
+          <div class="card chart-card">
+            <h3>Fitness przez pokolenia</h3>
+            <canvas class="chart" id="chart-fitness"></canvas>
+            <div class="legend">
+              <span class="lg lg-prey-b">ofiara best</span>
+              <span class="lg lg-prey-a">ofiara avg</span>
+              <span class="lg lg-pred-b">drap. best</span>
+              <span class="lg lg-pred-a">drap. avg</span>
+            </div>
+          </div>
+
+          <div class="card chart-card">
+            <h3>Dynamika populacji — Lotka–Volterra</h3>
+            <canvas class="chart" id="chart-population"></canvas>
+            <div class="legend">
+              <span class="lg lg-prey-pop">ofiary żywe</span>
+              <span class="lg lg-pred-pop">drapieżniki żywe</span>
+            </div>
+          </div>
+
+          <div class="card chart-card">
+            <h3>Pokarm zjedzony i zabójstwa</h3>
+            <canvas class="chart" id="chart-food"></canvas>
+            <div class="legend">
+              <span class="lg lg-food">pokarm (ofiary)</span>
+              <span class="lg lg-kills">zabójstwa (drap.)</span>
+            </div>
+          </div>
+
+          <div class="card chart-card">
+            <h3>Różnorodność genetyczna</h3>
+            <canvas class="chart" id="chart-diversity"></canvas>
+            <div class="legend">
+              <span class="lg lg-div-p">ofiary</span>
+              <span class="lg lg-div-d">drapieżniki</span>
+            </div>
+            <p class="hint">Średnie odchylenie standardowe genomów — spadek = zbieżność populacji.</p>
+          </div>
+
+          <div class="btn-row">
+            <button id="btn-export" class="btn">⬇ Eksportuj JSON</button>
+            <button id="btn-again"  class="btn btn-primary">↻ Nowy trening</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </div>
+
+  <script src="js/rng.js"></script>
+  <script src="js/nn.js"></script>
+  <script src="js/world.js"></script>
+  <script src="js/evolution.js"></script>
+  <script src="js/charts.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
